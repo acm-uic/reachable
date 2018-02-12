@@ -2,7 +2,7 @@
 
 # reachable.sh
 # Author: clee231
-# Editor(s): mac@acm.cs.uic.edu
+# Editor(s): mac@acm.cs.uic.edu, wtoher@acm.cs.uic.edu
 # ACM@UIC SIGSysAdmin 2018
 
 
