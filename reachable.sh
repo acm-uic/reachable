@@ -27,7 +27,7 @@ json_output () {
 payload=$(cat <<EOF
 {"channel":"$1",
  "as_user":true,
- "text":"The current time is: <!date^$(date +%s)^{date} at {time}|$(date)>",
+ "text":"$HOSTNAME is $status; current time is: <!date^$(date +%s)^{date} at {time}|$(date)>",
  "attachments": [
     {
             "fallback": "$MSG_TITLE",
