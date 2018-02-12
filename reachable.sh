@@ -2,6 +2,7 @@
 
 # reachable.sh
 # Author: clee231
+# Editor(s): mac@acm.cs.uic.edu
 # ACM@UIC SIGSysAdmin 2018
 
 
@@ -12,11 +13,16 @@
 
 source .env
 
-prevstatus=-1
+#previousStatus 3 states init|down|up
+previousStatus="init"
+
+#Colors as hex values
+green="#36a64f"
+red="#d50200"
 
 # All parameters are required. $channel, $status, $reportNode
 json_output () {
-[[ $2 == 1 ]] && color="#36a64f" || color="#d50200"
+[[ $2 == 1 ]] && color=$green || color=$red
 [[ $2 == 1 ]] && status="Up" || status="Down"
 payload=$(cat <<EOF
 {"channel":"$1",
@@ -62,26 +68,26 @@ EOF
 
 while true; do
     # shellcheck disable=SC2034
-    pingres="$(ping -c 1 "$HOSTNAME")"
+    pingResponse=$(ping -c 1 "$HOSTNAME")
     if [ "$?" == 0 ]
     then
         echo "[$(date)] Ping Online for $HOSTNAME"
-        payloadres="$(json_output "$CHANNEL" 1 "$NODENAME")"
-        if [ $prevstatus != 1 ]
+        payloadResponse=$(json_output "$CHANNEL" 1 "$NODENAME")
+        if [ $previousStatus != "up" ]
         then
-            prevstatus=1
-            curl --data "${payloadres}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
+            previousStatus="up"
+            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
         fi
     else
         echo "[$(date)] Ping Offline for $HOSTNAME"
-        if [ $prevstatus != 0 ]
+        if [ $previousStatus != "down" ]
         then
-            prevstatus=0
-            payloadres=$(json_output "$CHANNEL" 0 "$NODENAME")
-            curl --data "${payloadres}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
+            previousStatus="down"
+            payloadResponse=$(json_output "$CHANNEL" 0 "$NODENAME")
+            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
         fi
     fi
-    if [ $prevstatus == 1 ]
+    if [ $previousStatus == "up" ]
     then
         sleep 60
     else
