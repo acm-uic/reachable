@@ -61,7 +61,7 @@ EOF
 
 
 while true; do
-    if [ "`ping -c 1 $HOSTNAME`" ]
+    if [ "`ping -c 1 $HOSTNAME`" == 0 ]
     then
         echo "[$(date)] Ping Online"
         payloadres=$(json_output $CHANNEL 1 $NODENAME)
@@ -75,7 +75,7 @@ while true; do
         if [ $prevstatus != 0 ]
         then
             prevstatus=0
-            payloadres=$(json_output $CHANNEL 1 $NODENAME)
+            payloadres=$(json_output $CHANNEL 0 $NODENAME)
             curl --data "${payloadres}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST $POSTURL
         fi
     fi
