@@ -2,7 +2,7 @@
 
 # reachable.sh
 # Author: clee231
-# Editor(s): mac@acm.cs.uic.edu
+# Editor(s): mac@acm.cs.uic.edu, wtoher@acm.cs.uic.edu
 # ACM@UIC SIGSysAdmin 2018
 
 
@@ -22,12 +22,12 @@ red="#d50200"
 
 # All parameters are required. $channel, $status, $reportNode
 json_output () {
-[[ $2 == 1 ]] && color=green || color=red
+[[ $2 == 1 ]] && color=$green || color=$red
 [[ $2 == 1 ]] && status="Up" || status="Down"
 payload=$(cat <<EOF
 {"channel":"$1",
  "as_user":true,
- "text":"The current time is: <!date^$(date +%s)^{date} at {time}|$(date)>",
+ "text":"$HOSTNAME is $status; current time is: <!date^$(date +%s)^{date} at {time}|$(date)>",
  "attachments": [
     {
             "fallback": "$MSG_TITLE",
@@ -62,28 +62,29 @@ payload=$(cat <<EOF
 }
 EOF
 )
- echo $payload
+ echo "$payload"
 }
 
 
 while true; do
-    pingResponse=`ping -c 1 $HOSTNAME`
+    # shellcheck disable=SC2034
+    pingResponse=$(ping -c 1 "$HOSTNAME")
     if [ "$?" == 0 ]
     then
         echo "[$(date)] Ping Online for $HOSTNAME"
-        payloadResponse=$(json_output $CHANNEL 1 $NODENAME)
+        payloadResponse=$(json_output "$CHANNEL" 1 "$NODENAME")
         if [ $previousStatus != "up" ]
         then
             previousStatus="up"
-            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST $POSTURL
+            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
         fi
     else
         echo "[$(date)] Ping Offline for $HOSTNAME"
         if [ $previousStatus != "down" ]
         then
             previousStatus="down"
-            payloadResponse=$(json_output $CHANNEL 0 $NODENAME)
-            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST $POSTURL
+            payloadResponse=$(json_output "$CHANNEL" 0 "$NODENAME")
+            curl --data "${payloadResponse}" -H "Content-Type: $CONTENTTYPE" -H "Authorization: Bearer $KEY" -X POST "$POSTURL"
         fi
     fi
     if [ $previousStatus == "up" ]
